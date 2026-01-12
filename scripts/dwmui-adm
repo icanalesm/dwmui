@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Usage: dwmui-adm [backlight | battery | rfkill | volume ] device
+#        dwmui-adm statusbar
+
+signal_dwmblocks() {
+    case "$1" in
+        BAT0) signal=2 ;;
+        @DEFAULT_AUDIO_SINK@) signal=3 ;;
+        phy0) signal=4 ;;
+        hci0) signal=5 ;;
+        *) return 1 ;;
+    esac
+    kill -$((34 + signal)) "$(pidof dwmblocks)"
+}
+
+case "$1" in
+    backlight)
+        dwmui-backlight "$2"
+        ;;
+    battery | rfkill)
+        signal_dwmblocks "$2"
+        ;;
+    volume)
+        signal_dwmblocks "$2"
+        dwmui-volume osd "$2"
+        ;;
+    statusbar)
+        kill -10 "$(pidof dwmblocks)"
+        ;;
+esac

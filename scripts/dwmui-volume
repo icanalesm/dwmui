@@ -1,0 +1,73 @@
+#!/bin/sh
+
+usage() {
+    printf "Usage: dwmui-volume [osd | status] device\n"
+}
+
+err() {
+    printf "[dwmui-volume]: %s\n" "$*" >&2
+}
+
+# progress_bar <progress> <total_items>
+progress_bar() {
+    _item_filled=" "
+    _item_empty=" "
+
+    _filled=$((($1 * $2) / 100))
+    _empty=$(($2 - _filled))
+    printf "%s" "$(printf "%${_filled}s" | sed "s| |$_item_filled|g")"
+    printf "%s" "$(printf "%${_empty}s" | sed "s| |$_item_empty|g")"
+}
+
+# show_osd <device>
+show_osd() {
+    # Get volume information
+    if ! data=$(wpctl get-volume "$1" 2>/dev/null); then
+        err "Unable to get volume info for \"$1\""
+        exit 1
+    fi
+    read -r vol mute <<- EOF
+$(echo "$data" | awk '{ print $2 * 100, $3 == "[MUTED]" }')
+EOF
+
+    [ "$mute" -eq 1 ] && vol=0
+    progbar=$(progress_bar "$vol" 10)
+    notify-send -a dwmui -u low -t 1000 -h string:x-canonical-private-synchronous:dwmui-notif "Volume" "$progbar"
+}
+
+# print_status <device>
+print_status() {
+    # Get volume information
+    if ! data=$(wpctl get-volume "$1" 2>/dev/null); then
+        err "Unable to get volume info for \"$1\""
+        exit 1
+    fi
+    read -r vol mute <<- EOF
+$(echo "$data" | awk '{ print $2 * 100, $3 == "[MUTED]" }')
+EOF
+ 
+    if [ "$mute" -eq 1 ]; then
+        icon=""
+    elif [ "$vol" -ge 30 ]; then
+        icon=""
+    elif [ "$vol" -ge 10 ]; then
+        icon=" "
+    else
+        icon="  "
+    fi
+
+    printf "%s %s%%" "$icon" "$vol"
+}
+
+case "$1" in
+    osd)
+        show_osd "$2"
+        ;;
+    status)
+        print_status "$2"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac

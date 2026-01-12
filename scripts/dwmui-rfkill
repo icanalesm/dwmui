@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Usage: dwmui-rfkill device
+
+err() {
+    printf "[dwmui-rfkill]: %s\n" "$*" >&2
+}
+
+# Get device information
+if ! data=$(rfkill -n -r -o DEVICE,TYPE,SOFT,HARD 2>/dev/null); then
+    err "Unable to get rfkill info"
+    exit 1
+fi
+read -r dev_type soft hard <<- EOF
+$(echo "$data" | awk -v dev="$1" '$1 == dev { print $2, $3 == "unblocked", $4 == "unblocked" }')
+EOF
+
+case "$dev_type" in
+    wlan) icon="" ;;
+    bluetooth) icon="" ;;
+    *)
+        err "Device \"$1\" is not a bluetooth or wifi device"
+        exit 1
+        ;;
+esac
+if [ "$soft" -eq 1 ] && [ "$hard" -eq 1 ]; then
+    status="on"
+else
+    status="off"
+fi
+printf "%s %s" "$icon" "$status"

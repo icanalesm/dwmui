@@ -1,0 +1,9 @@
+# Backlight
+#ACTION=="change", SUBSYSTEM=="backlight", KERNEL=="<monitor_backlight>", RUN+="INSTALLDIR/dwmui-adm backlight %k"
+#ACTION=="change", SUBSYSTEM=="leds", KERNEL=="<keyboardd_backlight>", RUN+="INSTALLDIR/dwmui-adm backlight %k"
+# Battery
+ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="BAT0" RUN+="INSTALLDIR/dwmui-adm battery %k"
+# Bluetooth
+ACTION=="change", SUBSYSTEM=="rfkill", ATTR{name}=="hci0", RUN+="INSTALLDIR/dwmui-adm rfkill %s{name}"
+# Wifi
+ACTION=="change", SUBSYSTEM=="rfkill", ATTR{name}=="phy0", RUN+="INSTALLDIR/dwmui-adm rfkill %s{name}"

@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Usage: dwmui-backlight device
+
+err() {
+    printf "[dwmui-backlight]: %s\n" "$*" >&2
+}
+
+# progress_bar <progress> <total_items>
+progress_bar() {
+    _item_filled=" "
+    _item_empty=" "
+
+    _filled=$((($1 * $2) / 100))
+    _empty=$(($2 - _filled))
+    printf "%s" "$(printf "%${_filled}s" | sed "s| |$_item_filled|g")"
+    printf "%s" "$(printf "%${_empty}s" | sed "s| |$_item_empty|g")"
+}
+
+# Get backlight information
+if ! data=$(brightnessctl -m -d "$1" info 2>/dev/null); then
+    err "Unable to get backlight info for \"$1\""
+    exit 1
+fi
+read -r class perc <<- EOF
+$(echo "$data" | awk -F',' '{ print $2, $4 + 0 }')
+EOF
+
+if [ "$class" = "backlight" ]; then
+    summary="Monitor backlight"
+else
+    summary="Keyboard backlight"
+fi
+
+progbar=$(progress_bar "$perc" 10)
+notify-send -a dwmui -u low -t 1000 -h string:x-canonical-private-synchronous:dwmui-notif "$summary" "$progbar"

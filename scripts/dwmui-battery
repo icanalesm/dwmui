@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# Usage: dwmui-battery device
+
+err() {
+    printf "[dwmui-battery]: %s\n" "$*" >&2
+}
+
+# Get battery information
+if ! read -r status 2>/dev/null < "/sys/class/power_supply/$1/status"; then
+    err "Unable to get status of \"$1\""
+    exit 1
+fi
+if ! read -r capacity 2>/dev/null < "/sys/class/power_supply/$1/capacity"; then
+    err "Unable to get capacity of \"$1\""
+    exit 1
+fi
+
+case "$status" in
+    Full) icon="" ;;
+    Charging) icon="" ;;
+    Discharging)
+        if [ "$capacity" -ge 90 ]; then
+            icon=""
+        elif [ "$capacity" -ge 65 ]; then
+            icon=""
+        elif [ "$capacity" -ge 40 ]; then
+            icon=""
+        elif [ "$capacity" -ge 15 ]; then
+            icon=""
+        else
+            icon=""
+        fi
+        ;;
+    "Not charging") icon="(-)" ;;
+    Unknown) icon="(?)" ;;
+    *)
+        err "Unknown status \"$status\""
+        exit 1
+        ;;
+esac
+printf "%s %s%%" "$icon" "$capacity"

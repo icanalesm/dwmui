@@ -1,3 +1,0 @@
-ACTION=="change", SUBSYSTEM=="power_supply", RUN+="INSTALLDIR/uictl_run power_supply"
-ACTION=="change", SUBSYSTEM=="rfkill", RUN+="INSTALLDIR/uictl_run rfkill"
-
